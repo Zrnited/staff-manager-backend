@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { GradeLevel } from '../grade-levels/gradelevel.entity.js';
 
 @Entity()
 export class Employee {
@@ -16,6 +17,6 @@ export class Employee {
   state!: string;
   @Column()
   address!: string;
-  @Column()
-  grade!: string;
+  @ManyToOne(() => GradeLevel, (gradeLevel) => gradeLevel.employees)
+  gradeLevel!: GradeLevel;
 }

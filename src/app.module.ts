@@ -7,6 +7,9 @@ import { GradeLevelsModule } from './grade-levels/grade-levels.module.js';
 import { EmployeesModule } from './employees/employees.module.js';
 import { UsersModule } from './users/users.module.js';
 import { dataSourceOptions } from './data-source.js';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 
 @Module({
   imports: [
@@ -35,6 +38,10 @@ import { dataSourceOptions } from './data-source.js';
     UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
 export class AppModule {}

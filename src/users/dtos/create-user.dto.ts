@@ -1,0 +1,20 @@
+import { Transform } from 'class-transformer';
+import { IsString, IsEmail, MinLength } from 'class-validator';
+
+export class CreateUserDto {
+  @IsString()
+  firstName: string;
+
+  @IsString()
+  lastName: string;
+
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8)
+  password: string;
+}
