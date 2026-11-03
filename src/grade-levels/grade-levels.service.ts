@@ -35,14 +35,14 @@ export class GradeLevelsService {
     return this.repo.save(gradeLevel);
   }
 
-  //return all grade levels
+  //get all
   async findAll(): Promise<GradeLevel[]> {
     return await this.repo.find({
       order: { createdAt: 'DESC' },
     });
   }
 
-  //return grade level by id
+  //get one
   async findOne(id: string) {
     const gradeLevel = await this.repo.findOneBy({ id });
     if (!gradeLevel)
@@ -78,7 +78,7 @@ export class GradeLevelsService {
   //delete a gradeLevel
   async remove(id: string) {
     const gradeLevel = await this.findOne(id);
-    if (!gradeLevel) throw new NotFoundException('grade level not found');
+    if (!gradeLevel) throw new NotFoundException('Grade level not found');
     return this.repo.remove(gradeLevel);
   }
 }

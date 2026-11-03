@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { GradeLevel } from '../grade-levels/gradelevel.entity.js';
 
 @Entity()
@@ -6,22 +13,22 @@ export class Employee {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ length: 100 })
   name!: string;
 
-  @Column()
-  role!: string;
+  @Column({ length: 100 })
+  position!: string;
 
-  @Column()
+  @Column({ length: 100 })
   department!: string;
 
-  @Column()
+  @Column({ length: 100 })
   country!: string;
 
-  @Column()
+  @Column({ length: 100 })
   state!: string;
 
-  @Column()
+  @Column({ type: 'text' })
   address!: string;
 
   @ManyToOne(() => GradeLevel, (gradeLevel) => gradeLevel.employees, {

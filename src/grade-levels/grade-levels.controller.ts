@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+//   BadRequestException,
   Body,
   Controller,
   Delete,
@@ -32,11 +32,11 @@ export class GradeLevelsController {
   @Get('/:id')
   @ResponseMessage('Grade Level fetched successfully')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    if (!id) return new BadRequestException('id not found');
+    // if (!id) return new BadRequestException('id not found');
     return this.gradeLevelService.findOne(id);
   }
 
-  @Patch(':gradeLevelId/employees/:employeeId')
+  @Patch('/:gradeLevelId/employees/:employeeId')
   @ResponseMessage('Employee assigned to grade level successfully')
   assign(
     @Param('gradeLevelId', ParseUUIDPipe) gradeLevelId: string,
@@ -48,7 +48,7 @@ export class GradeLevelsController {
   @Delete('/:id')
   @ResponseMessage('Grade Level deleted successfully')
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    if (!id) return new BadRequestException('id not found');
+    // if (!id) return new BadRequestException('id not found');
     return this.gradeLevelService.remove(id);
   }
 }
