@@ -12,7 +12,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
-  UseGuards,
+  // UseGuards,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto.js';
 import { UsersService } from './users.service.js';
@@ -23,7 +23,8 @@ import { UserDto } from './dtos/user.dto.js';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dtos/login-user.dto.js';
 import type { Request, Response } from 'express';
-import { AuthGuard } from '../guards/auth.guard.js';
+// import { AuthGuard } from '../guards/auth.guard.js';
+import { Public } from '../common/decorators/public.decorator.js';
 
 @Controller('users')
 @Serialize(UserDto) //handling password removal
@@ -41,6 +42,7 @@ export class UsersController {
     return user;
   }
 
+  @Public()
   @Post('/signup')
   @ResponseMessage('User created successfully')
   signup(@Body() body: CreateUserDto) {
@@ -48,6 +50,7 @@ export class UsersController {
     return this.authService.signup(firstName, lastName, email, password);
   }
 
+  @Public()
   @Post('/signin')
   @ResponseMessage('Login successful')
   async signin(@Body() body: LoginDto, @Req() req: Request) {
@@ -81,7 +84,7 @@ export class UsersController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/:id')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @ResponseMessage('User fetched successfully')
   findUser(@Param('id', ParseUUIDPipe) id: string) {
     const user = this.usersService.findOne(id);
