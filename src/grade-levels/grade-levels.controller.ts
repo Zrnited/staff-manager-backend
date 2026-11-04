@@ -12,7 +12,10 @@ import {
 import { GradeLevelsService } from './grade-levels.service.js';
 import { CreateGradeLevelDto } from './dtos/create-grade-level.dto.js';
 import { ResponseMessage } from '../common/decorators/response-message.decorator.js';
+import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Grade Levels')
+@ApiCookieAuth()
 @Controller('grade-levels')
 export class GradeLevelsController {
   constructor(private readonly gradeLevelService: GradeLevelsService) {}

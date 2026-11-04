@@ -1,7 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { promisify } from 'util';
+import type { Request } from 'express';
 
 const scrypt = promisify(_scrypt);
 
@@ -59,5 +64,11 @@ export class AuthService {
 
     //RETURN USER
     return existingUser;
+  }
+
+  async signOut(req: Request): Promise<void> {
+    return new Promise((res, rej) => {
+      req.session.destroy((err) => (err ? rej(err) : res()));
+    });
   }
 }

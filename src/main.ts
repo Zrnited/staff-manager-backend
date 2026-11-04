@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 // import cookieSession from 'cookie-session';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -29,6 +30,23 @@ async function bootstrap() {
       transform: true, // converts payloads into DTO instances and coerces types
     }),
   );
+
+  //swagger config
+  const config = new DocumentBuilder()
+    .setTitle('Staff Manager API')
+    .setDescription('A staff directory web application')
+    .setVersion('1.0')
+    // .addBearerAuth() // for JWT setup
+    .addCookieAuth('connect.sid')
+    .build();
+
+  if (process.env.NODE_ENV !== 'production') {
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document, {
+      swaggerOptions: { persistAuthorization: true },
+    });
+  }
+
   await app.listen(process.env.PORT ?? 3000);
 }
 await bootstrap();

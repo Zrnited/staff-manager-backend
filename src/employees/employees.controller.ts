@@ -13,7 +13,10 @@ import { EmployeesService } from './employees.service.js';
 import { UpdateEmployeeDto } from './dtos/update-employee.dto.js';
 import { ResponseMessage } from '../common/decorators/response-message.decorator.js';
 import { CreateEmployeeDto } from './dtos/create-employee.dto.js';
+import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 
+@ApiTags('Employees')
+@ApiCookieAuth()
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeeService: EmployeesService) {}
@@ -47,7 +50,7 @@ export class EmployeesController {
   }
 
   @Delete('/:id')
-  @ResponseMessage('Employee records deleted successfully')
+  @ResponseMessage('Employee record deleted successfully')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     // if (!id) return new BadRequestException('id not found');
     return this.employeeService.remove(id);

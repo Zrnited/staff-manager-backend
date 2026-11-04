@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Employee } from './employee.entity.js';
 import { Repository } from 'typeorm';
@@ -18,7 +22,7 @@ export class EmployeesService {
 
   //create an employee
   async create(dto: CreateEmployeeDto): Promise<Employee> {
-    const { gradeLevelId, ...fields } = dto;
+    const { gradeLevelId, name, ...fields } = dto;
     let gradeLevel: GradeLevel | null = null;
 
     if (gradeLevelId) {
@@ -30,7 +34,14 @@ export class EmployeesService {
       }
     }
 
-    const employee = this.repo.create({ ...fields, gradeLevel });
+    const existingName = await this.repo.findOneBy({ name });
+    if (existingName) {
+      throw new ConflictException(
+        'Employee name already exists. If necessary, add special tag or number to name.',
+      );
+    }
+
+    const employee = this.repo.create({ ...fields, name, gradeLevel });
     return this.repo.save(employee);
   }
 
@@ -67,7 +78,9 @@ export class EmployeesService {
       if (gradeLevelId === null) {
         employee.gradeLevel = null;
       } else {
-        const gradeLevel = await this.gradeLevelRepo.findOneBy({ id: gradeLevelId });
+        const gradeLevel = await this.gradeLevelRepo.findOneBy({
+          id: gradeLevelId,
+        });
         if (!gradeLevel) {
           throw new NotFoundException(`Grade level ${id} not found`);
         }

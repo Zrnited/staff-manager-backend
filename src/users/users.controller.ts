@@ -25,7 +25,10 @@ import { LoginDto } from './dtos/login-user.dto.js';
 import type { Request, Response } from 'express';
 // import { AuthGuard } from '../guards/auth.guard.js';
 import { Public } from '../common/decorators/public.decorator.js';
+import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 
+@ApiTags('Users')
+@ApiCookieAuth()
 @Controller('users')
 @Serialize(UserDto) //handling password removal
 export class UsersController {
@@ -63,19 +66,22 @@ export class UsersController {
     return user;
   }
 
-  @Post('/logout')
-  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    return new Promise<void>((resolve, reject) => {
-      req.session.destroy((err) => {
-        if (err) return reject(err);
-        res.clearCookie('connect.sid'); // default cookie name
-        resolve();
-      });
-    });
+  @Post('/signout')
+  @ResponseMessage("Signed out successfully")
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    // return new Promise<void>((resolve, reject) => {
+    //   req.session.destroy((err) => {
+    //     if (err) return reject(err);
+    //     res.clearCookie('connect.sid'); // default cookie name
+    //     resolve();
+    //   });
+    // });
+    await this.authService.signOut(req);
+    res.clearCookie('connect.sid');
   }
 
   @Get('/whoami') // static route first
-  @ResponseMessage('Current user found!')
+  @ResponseMessage('User retrieved successfully')
   async whoami(@Req() req: Request) {
     const userId = req.session.userId;
     if (!userId) throw new UnauthorizedException();

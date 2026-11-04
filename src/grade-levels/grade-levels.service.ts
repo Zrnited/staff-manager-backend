@@ -39,6 +39,8 @@ export class GradeLevelsService {
   async findAll(): Promise<GradeLevel[]> {
     return await this.repo.find({
       order: { createdAt: 'DESC' },
+      relations: { employees: true },
+      select: { employees: { id: true, name: true } },
     });
   }
 
