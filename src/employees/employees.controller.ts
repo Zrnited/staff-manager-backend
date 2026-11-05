@@ -33,10 +33,15 @@ export class EmployeesController {
     return this.employeeService.findAll();
   }
 
+  @Get('/stats')
+  @ResponseMessage('Overview stats fetched successfully')
+  stats() {
+    return this.employeeService.overview();
+  }
+
   @Get('/:id')
   @ResponseMessage('Employee fetched successfully')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    // if (!id) return new BadRequestException('id not found');
     return this.employeeService.findOne(id);
   }
 
@@ -52,7 +57,6 @@ export class EmployeesController {
   @Delete('/:id')
   @ResponseMessage('Employee record deleted successfully')
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    // if (!id) return new BadRequestException('id not found');
     return this.employeeService.remove(id);
   }
 }

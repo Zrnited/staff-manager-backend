@@ -31,6 +31,13 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors({
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:7070', // your frontend's exact origin
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   //swagger config
   const config = new DocumentBuilder()
     .setTitle('Staff Manager API')

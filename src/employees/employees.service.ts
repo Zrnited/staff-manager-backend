@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Employee } from './employee.entity.js';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dtos/create-employee.dto.js';
 import { GradeLevel } from '../grade-levels/gradelevel.entity.js';
 import { UpdateEmployeeDto } from './dtos/update-employee.dto.js';
+import { StatisticsDto } from './dtos/statistics.dto.js';
 
 @Injectable()
 export class EmployeesService {
@@ -97,5 +98,37 @@ export class EmployeesService {
     const employee = await this.findOne(id);
     if (!employee) throw new NotFoundException('Employee not found');
     return this.repo.remove(employee);
+  }
+
+  //stats
+  async overview() {
+    //get all employees
+    const employees = await this.findAll();
+    //get all gradelevels
+    const gradeLevels = await this.gradeLevelRepo.find();
+
+    const departments = await this.repo
+      .createQueryBuilder('employee')
+      .select('COUNT(DISTINCT LOWER(TRIM(employee.department)))', 'count')
+      .getRawOne<{ count: string }>();
+
+    const [total, assigned] = await Promise.all([
+      this.repo.count(),
+      this.repo.count({
+        where: { gradeLevel: { id: Not(IsNull()) } },
+      }),
+    ]);
+
+    //define resonse structure
+    const statistics: StatisticsDto = {
+      numOfEmployees: employees.length,
+      numOfGradeLevels: gradeLevels.length,
+      deptCount: Number(departments?.count ?? 0),
+      assignedEmployees: assigned,
+      totalEmployees: total,
+      unassignedEmployees: total - assigned 
+    };
+
+    return statistics;
   }
 }
