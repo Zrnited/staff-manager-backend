@@ -5,6 +5,11 @@ import { ValidationPipe } from '@nestjs/common';
 // import cookieSession from 'cookie-session';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import { Pool } from 'pg';
+
+const isProd = process.env.NODE_ENV === 'production';
+const PgStore = connectPgSimple(session);
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -17,10 +22,21 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true, // JS can't read it
-        secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
-        sameSite: 'lax',
+        secure: isProd, // HTTPS only in prod
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
+      store: new PgStore({
+        pool: new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl:
+            process.env.DATABASE_SSL === 'true'
+              ? { rejectUnauthorized: false }
+              : false,
+        }),
+        tableName: 'session',
+        createTableIfMissing: true,
+      }),
     }),
   );
   app.useGlobalPipes(
@@ -54,6 +70,6 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 await bootstrap();
