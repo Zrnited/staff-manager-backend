@@ -20,7 +20,9 @@ if (!env || !ENVS.includes(env)) {
 // can rely purely on the host's environment variables.
 config({ path: `.env.${env}` });
 
+// const url = process.env.DATABASE_URL;
 const url = process.env.DATABASE_URL;
+
 if (!url) {
   throw new Error(
     `DATABASE_URL is not set (looked in .env.${env} and the environment)`,
@@ -51,8 +53,7 @@ const base: PostgresOptions = {
   synchronize: false, // schema changes happen through migrations only
   // SSL is only needed when connecting from outside the host's private network
   // (for example Render's External Database URL). Set DATABASE_SSL=true then.
-  ssl:
-    process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
 };
 
 function getOptions(): PostgresOptions {

@@ -15,7 +15,7 @@ export class AppController {
   @Public()
   @Get('health')
   async health() {
-    await this.dataSource.query('SELECT 1');
+    // await this.dataSource.query('SELECT 1');
     // return { db: 'up' };
     return { status: 'ok' };
   }
