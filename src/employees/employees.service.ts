@@ -22,12 +22,15 @@ export class EmployeesService {
   }
 
   //create an employee
-  async create(dto: CreateEmployeeDto): Promise<Employee> {
+  async create(dto: CreateEmployeeDto, ownerId: string): Promise<Employee> {
     const { gradeLevelId, name, ...fields } = dto;
     let gradeLevel: GradeLevel | null = null;
 
     if (gradeLevelId) {
-      gradeLevel = await this.gradeLevelRepo.findOneBy({ id: gradeLevelId });
+      gradeLevel = await this.gradeLevelRepo.findOneBy({
+        id: gradeLevelId,
+        ownerId,
+      });
       if (!gradeLevel) {
         throw new NotFoundException(
           `Grade level with id: ${gradeLevelId} not found`,
@@ -35,20 +38,21 @@ export class EmployeesService {
       }
     }
 
-    const existingName = await this.repo.findOneBy({ name });
+    const existingName = await this.repo.existsBy({ name, ownerId });
     if (existingName) {
       throw new ConflictException(
         'Employee name already exists. If necessary, add special tag or number to name.',
       );
     }
 
-    const employee = this.repo.create({ ...fields, name, gradeLevel });
+    const employee = this.repo.create({ ...fields, name, gradeLevel, ownerId });
     return this.repo.save(employee);
   }
 
   //find all employees
-  async findAll(): Promise<Employee[]> {
+  async findAll(ownerId: string): Promise<Employee[]> {
     return await this.repo.find({
+      where: { ownerId },
       order: { createdAt: 'DESC' },
       relations: { gradeLevel: true },
       select: { gradeLevel: { name: true, id: true } },
@@ -56,10 +60,10 @@ export class EmployeesService {
   }
 
   //find one employee
-  async findOne(id: string) {
+  async findOne(id: string, ownerId: string) {
     // const employee = await this.repo.findOneBy({ id });
     const employee = await this.repo.findOne({
-      where: { id },
+      where: { id, ownerId },
       relations: { gradeLevel: true },
       select: { gradeLevel: { name: true, id: true } },
     });
@@ -69,8 +73,12 @@ export class EmployeesService {
   }
 
   //update one
-  async update(id: string, dto: UpdateEmployeeDto): Promise<Employee> {
-    const employee = await this.findOne(id);
+  async update(
+    id: string,
+    dto: UpdateEmployeeDto,
+    ownerId: string,
+  ): Promise<Employee> {
+    const employee = await this.findOne(id, ownerId);
     if (!employee) throw new NotFoundException(`Employee ${id} not found`);
 
     const { gradeLevelId, ...fields } = dto;
@@ -81,6 +89,7 @@ export class EmployeesService {
       } else {
         const gradeLevel = await this.gradeLevelRepo.findOneBy({
           id: gradeLevelId,
+          ownerId,
         });
         if (!gradeLevel) {
           throw new NotFoundException(`Grade level ${id} not found`);
@@ -94,39 +103,40 @@ export class EmployeesService {
   }
 
   //delete an employee
-  async remove(id: string) {
-    const employee = await this.findOne(id);
+  async remove(id: string, ownerId: string) {
+    const employee = await this.findOne(id, ownerId);
     if (!employee) throw new NotFoundException('Employee not found');
     return this.repo.remove(employee);
   }
 
   //stats
-  async overview() {
+  async overview(ownerId: string) {
     //get all employees
-    const employees = await this.findAll();
+    const employees = await this.findAll(ownerId);
     //get all gradelevels
-    const gradeLevels = await this.gradeLevelRepo.find();
+    const gradeLevels = await this.gradeLevelRepo.find({ where: { ownerId } });
 
     const departments = await this.repo
       .createQueryBuilder('employee')
+      .where('employee.ownerId = :ownerId', { ownerId })
       .select('COUNT(DISTINCT LOWER(TRIM(employee.department)))', 'count')
       .getRawOne<{ count: string }>();
 
     const [total, assigned] = await Promise.all([
-      this.repo.count(),
+      this.repo.count({ where: { ownerId } }),
       this.repo.count({
-        where: { gradeLevel: { id: Not(IsNull()) } },
+        where: { ownerId, gradeLevel: { id: Not(IsNull()) } },
       }),
     ]);
 
     //define resonse structure
     const statistics: StatisticsDto = {
       numOfEmployees: employees.length,
-      numOfGradeLevels: gradeLevels.length,
+      numOfGradeLevels: gradeLevels.length ? gradeLevels.length : 0,
       deptCount: Number(departments?.count ?? 0),
       assignedEmployees: assigned,
       totalEmployees: total,
-      unassignedEmployees: total - assigned 
+      unassignedEmployees: total - assigned,
     };
 
     return statistics;

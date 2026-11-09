@@ -1,5 +1,5 @@
 import {
-//   BadRequestException,
+  //   BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,6 +13,7 @@ import { GradeLevelsService } from './grade-levels.service.js';
 import { CreateGradeLevelDto } from './dtos/create-grade-level.dto.js';
 import { ResponseMessage } from '../common/decorators/response-message.decorator.js';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { CurrentUserId } from '../common/decorators/current-user-id.decorator.js';
 
 @ApiTags('Grade Levels')
 @ApiCookieAuth()
@@ -22,21 +23,24 @@ export class GradeLevelsController {
 
   @Post()
   @ResponseMessage('Grade Level created successfully')
-  create(@Body() dto: CreateGradeLevelDto) {
-    return this.gradeLevelService.create(dto);
+  create(@Body() dto: CreateGradeLevelDto, @CurrentUserId() ownerId: string) {
+    return this.gradeLevelService.create(dto, ownerId);
   }
 
   @Get()
   @ResponseMessage('Grade Levels fetched successfully')
-  findAll() {
-    return this.gradeLevelService.findAll();
+  findAll(@CurrentUserId() ownerId: string) {
+    return this.gradeLevelService.findAll(ownerId);
   }
 
   @Get('/:id')
   @ResponseMessage('Grade Level fetched successfully')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUserId() ownerId: string,
+  ) {
     // if (!id) return new BadRequestException('id not found');
-    return this.gradeLevelService.findOne(id);
+    return this.gradeLevelService.findOne(id, ownerId);
   }
 
   @Patch('/:gradeLevelId/employees/:employeeId')
@@ -44,14 +48,22 @@ export class GradeLevelsController {
   assign(
     @Param('gradeLevelId', ParseUUIDPipe) gradeLevelId: string,
     @Param('employeeId', ParseUUIDPipe) employeeId: string,
+    @CurrentUserId() ownerId: string,
   ) {
-    return this.gradeLevelService.assignEmployee(gradeLevelId, employeeId);
+    return this.gradeLevelService.assignEmployee(
+      gradeLevelId,
+      employeeId,
+      ownerId,
+    );
   }
 
   @Delete('/:id')
   @ResponseMessage('Grade Level deleted successfully')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUserId() ownerId: string,
+  ) {
     // if (!id) return new BadRequestException('id not found');
-    return this.gradeLevelService.remove(id);
+    return this.gradeLevelService.remove(id, ownerId);
   }
 }

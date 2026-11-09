@@ -21,8 +21,8 @@ export class GradeLevelsService {
   }
 
   //create a gradelevel
-  async create(dto: CreateGradeLevelDto) {
-    const exists = await this.repo.existsBy({ name: dto.name });
+  async create(dto: CreateGradeLevelDto, ownerId: string) {
+    const exists = await this.repo.existsBy({ name: dto.name, ownerId });
     if (exists) {
       throw new ConflictException(`Grade level "${dto.name}" already exists`);
     }
@@ -30,14 +30,16 @@ export class GradeLevelsService {
     const gradeLevel = this.repo.create({
       name: dto.name,
       description: dto.description,
+      ownerId,
     });
 
     return this.repo.save(gradeLevel);
   }
 
   //get all
-  async findAll(): Promise<GradeLevel[]> {
+  async findAll(ownerId: string): Promise<GradeLevel[]> {
     return await this.repo.find({
+      where: { ownerId },
       order: { createdAt: 'ASC' },
       relations: { employees: true },
       select: { employees: { id: true, name: true } },
@@ -45,8 +47,12 @@ export class GradeLevelsService {
   }
 
   //get one
-  async findOne(id: string) {
-    const gradeLevel = await this.repo.findOneBy({ id });
+  async findOne(id: string, ownerId: string) {
+    const gradeLevel = await this.repo.findOne({
+      where: { id, ownerId },
+      relations: { employees: true },
+      select: { employees: { name: true, id: true } },
+    });
     if (!gradeLevel)
       throw new NotFoundException(`grade level with id: "${id}" not found`);
     return gradeLevel;
@@ -56,13 +62,17 @@ export class GradeLevelsService {
   async assignEmployee(
     gradeLevelId: string,
     employeeId: string,
+    ownerId: string,
   ): Promise<GradeLevel> {
     //find grade level
-    const gradeLevel = await this.findOne(gradeLevelId);
+    const gradeLevel = await this.findOne(gradeLevelId, ownerId);
     if (!gradeLevel) throw new NotFoundException('grade level not found');
 
     //find employee
-    const employee = await this.employeeRepo.findOneBy({ id: employeeId });
+    const employee = await this.employeeRepo.findOneBy({
+      id: employeeId,
+      ownerId,
+    });
     if (!employee) {
       throw new NotFoundException(`Employee ${employeeId} not found`);
     }
@@ -72,14 +82,14 @@ export class GradeLevelsService {
 
     // Return the grade level with its updated employee list
     return this.repo.findOneOrFail({
-      where: { id: gradeLevelId },
+      where: { id: gradeLevelId, ownerId },
       relations: { employees: true },
     });
   }
 
   //delete a gradeLevel
-  async remove(id: string) {
-    const gradeLevel = await this.findOne(id);
+  async remove(id: string, ownerId: string) {
+    const gradeLevel = await this.findOne(id, ownerId);
     if (!gradeLevel) throw new NotFoundException('Grade level not found');
     return this.repo.remove(gradeLevel);
   }

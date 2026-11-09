@@ -1,5 +1,4 @@
 import {
-  // BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,6 +13,7 @@ import { UpdateEmployeeDto } from './dtos/update-employee.dto.js';
 import { ResponseMessage } from '../common/decorators/response-message.decorator.js';
 import { CreateEmployeeDto } from './dtos/create-employee.dto.js';
 import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
+import { CurrentUserId } from '../common/decorators/current-user-id.decorator.js';
 
 @ApiTags('Employees')
 @ApiCookieAuth()
@@ -23,26 +23,29 @@ export class EmployeesController {
 
   @Post()
   @ResponseMessage('Employee created successfully')
-  create(@Body() dto: CreateEmployeeDto) {
-    return this.employeeService.create(dto);
+  create(@Body() dto: CreateEmployeeDto, @CurrentUserId() ownerId: string) {
+    return this.employeeService.create(dto, ownerId);
   }
 
   @Get()
   @ResponseMessage('Employees fetched successfully')
-  findAll() {
-    return this.employeeService.findAll();
+  findAll(@CurrentUserId() ownerId: string) {
+    return this.employeeService.findAll(ownerId);
   }
 
   @Get('/stats')
   @ResponseMessage('Overview stats fetched successfully')
-  stats() {
-    return this.employeeService.overview();
+  stats(@CurrentUserId() ownerId: string) {
+    return this.employeeService.overview(ownerId);
   }
 
   @Get('/:id')
   @ResponseMessage('Employee fetched successfully')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.employeeService.findOne(id);
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUserId() ownerId: string,
+  ) {
+    return this.employeeService.findOne(id, ownerId);
   }
 
   @Patch('/:id')
@@ -50,13 +53,17 @@ export class EmployeesController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateEmployeeDto,
+    @CurrentUserId() ownerId: string,
   ) {
-    return this.employeeService.update(id, dto);
+    return this.employeeService.update(id, dto, ownerId);
   }
 
   @Delete('/:id')
   @ResponseMessage('Employee record deleted successfully')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.employeeService.remove(id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUserId() ownerId: string,
+  ) {
+    return this.employeeService.remove(id, ownerId);
   }
 }

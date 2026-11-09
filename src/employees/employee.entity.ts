@@ -2,11 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { GradeLevel } from '../grade-levels/gradelevel.entity.js';
+import { User } from '../users/user.entity.js';
 
 @Entity()
 export class Employee {
@@ -36,6 +38,13 @@ export class Employee {
     onDelete: 'SET NULL', //deleting a grade level doesn't delete its employees
   })
   gradeLevel!: GradeLevel | null;
+
+  @Index()
+  @Column({ type: 'uuid' })
+  ownerId: string;
+
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  owner: User;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
