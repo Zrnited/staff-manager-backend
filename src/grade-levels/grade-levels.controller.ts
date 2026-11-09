@@ -33,6 +33,12 @@ export class GradeLevelsController {
     return this.gradeLevelService.findAll(ownerId);
   }
 
+  @Get('/chart-metrics')
+  @ResponseMessage('Chart metrics fetched successfully')
+  metrics(@CurrentUserId() ownerId: string) {
+    return this.gradeLevelService.chartMetrics(ownerId);
+  }
+
   @Get('/:id')
   @ResponseMessage('Grade Level fetched successfully')
   findOne(

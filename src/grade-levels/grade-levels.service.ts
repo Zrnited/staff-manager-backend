@@ -93,4 +93,18 @@ export class GradeLevelsService {
     if (!gradeLevel) throw new NotFoundException('Grade level not found');
     return this.repo.remove(gradeLevel);
   }
+
+  //chart metrics
+  async chartMetrics(ownerId: string) {
+    const gradeLevels = await this.findAll(ownerId);
+
+    if (gradeLevels.length === 0) return [];
+
+    const metrics = gradeLevels.map((gl) => ({
+      level: gl.name,
+      employeeCount: gl.employees.length ?? 0,
+    }));
+
+    return metrics;
+  }
 }
