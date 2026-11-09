@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,6 +8,7 @@ import { UsersService } from './users.service.js';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { promisify } from 'util';
 import type { Request } from 'express';
+import { validatePassword } from '../utils/validate-password.js';
 
 const scrypt = promisify(_scrypt);
 
@@ -20,9 +22,17 @@ export class AuthService {
     email: string,
     password: string,
   ) {
-    //SEE IF EMAIL IS IN USE
+    //VALIDATE EMAIL/CHECK CONFLICT
     const existingUser = await this.usersService.findByEmail(email);
-    if (existingUser) throw new BadRequestException('email is in use already');
+    if (existingUser) throw new ConflictException('email is in use already');
+
+    //VALIDATE PASSWORD
+    const { valid, errors } = validatePassword(password, {
+      email,
+      name: `${lastName} ${firstName}`,
+    });
+
+    if (!valid) throw new BadRequestException(errors);
 
     //HASH USER'S PASSWORD
     // Generate a Salt
